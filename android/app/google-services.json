@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "552421947881",
+    "project_id": "huwy-388614",
+    "storage_bucket": "huwy-388614.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:552421947881:android:2622742c307f2f7793b378",
+        "android_client_info": {
+          "package_name": "com.example.huwy"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "552421947881-bu4gd3qci7j26ku4l2q4g7g997jpj7dv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBsnt4531QIiIW0jrYKUypm1XSlL7y76Mo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "552421947881-bu4gd3qci7j26ku4l2q4g7g997jpj7dv.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "552421947881-3qsnitnkms9s39jqj1cqfacehsug2rhn.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.huwy.RunnerTests"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

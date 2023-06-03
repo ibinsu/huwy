@@ -1,5 +1,8 @@
 import 'dart:math';
-import 'package:flutter/material.dart';
+
+
+
+/*
 
 class CircleData {
   late double value;
@@ -80,7 +83,10 @@ class PieChartPainter extends CustomPainter {
   }
 }
 
-void main() {
+
+void main(){
+
+
   runApp(
     MaterialApp(
       home: Scaffold(
@@ -95,3 +101,4 @@ void main() {
     ),
   );
 }
+*/
