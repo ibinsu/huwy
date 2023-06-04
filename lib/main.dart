@@ -12,13 +12,11 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  List<EventUsageInfo> events = []; // 이벤트 정보를 저장할 리스트
-  Map<String?, NetworkInfo?> _netInfoMap = Map(); // 네트워크 정보를 저장할 맵
+  List<UsageInfo> usageInfoList = []; // 사용량 정보를 저장할 리스트
 
   @override
   void initState() {
     super.initState();
-
     initUsage(); // 앱 실행 시 사용량 초기화 함수 호출
   }
 
@@ -26,46 +24,18 @@ class _MyAppState extends State<MyApp> {
     try {
       UsageStats.grantUsagePermission(); // 사용량 퍼미션 획득
 
-      DateTime endDate = new DateTime.now();
+      DateTime endDate = DateTime.now();
       DateTime startDate = endDate.subtract(Duration(days: 1));
 
-      List<EventUsageInfo> queryEvents =
-      await UsageStats.queryEvents(startDate, endDate); // 이벤트 정보 쿼리
-      List<NetworkInfo> networkInfos = await UsageStats.queryNetworkUsageStats(
-        startDate,
-        endDate,
-        networkType: NetworkType.all,
-      ); // 네트워크 사용량 정보 쿼리
+      List<UsageInfo> queryUsageInfoList =
+      await UsageStats.queryUsageStats(startDate, endDate); // 사용량 정보 쿼리
 
-      Map<String?, NetworkInfo?> netInfoMap = Map.fromIterable(networkInfos,
-          key: (v) => v.packageName, value: (v) => v); // 네트워크 정보 맵 생성
-
-      List<UsageInfo> t = await UsageStats.queryUsageStats(startDate, endDate); // 사용량 정보 쿼리
-
-      for (var i in t) {
-        if (i.packageName == "com.google.android.youtube") { // packageName이 "com.google.android.youtube"인 경우에만 출력
-          if (double.parse(i.totalTimeInForeground!) > 0) {
-            print(
-                DateTime.fromMillisecondsSinceEpoch(int.parse(i.firstTimeStamp!))
-                    .toIso8601String());
-
-            print(DateTime.fromMillisecondsSinceEpoch(int.parse(i.lastTimeStamp!))
-                .toIso8601String());
-
-            print(i.packageName);
-            print(DateTime.fromMillisecondsSinceEpoch(int.parse(i.lastTimeUsed!))
-                .toIso8601String());
-            print(int.parse(i.totalTimeInForeground!) / 1000 / 60);
-
-            print('-----\n');
-          }
-        }
-      }
-
+      List<UsageInfo> filteredUsageInfoList = queryUsageInfoList
+          .where((info) => info.packageName == "com.google.android.youtube")
+          .toList(); // "com.google.android.youtube" 패키지 이름에 해당하는 사용량 정보 필터링
 
       this.setState(() {
-        events = queryEvents.reversed.toList(); // 이벤트 정보 리스트 업데이트
-        _netInfoMap = netInfoMap; // 네트워크 정보 맵 업데이트
+        usageInfoList = filteredUsageInfoList.reversed.toList(); // 사용량 정보 리스트 업데이트
       });
     } catch (err) {
       print(err);
@@ -76,37 +46,33 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        appBar: AppBar(title: const Text("Usage Stats"), actions: [
-          IconButton(
-            onPressed: UsageStats.grantUsagePermission, // 퍼미션 획득 버튼 클릭 시 퍼미션 획득 함수 호출
-            icon: Icon(Icons.settings),
-          )
-        ]),
+        appBar: AppBar(
+          title: const Text("Usage Stats"),
+          actions: [
+            IconButton(
+              onPressed: UsageStats.grantUsagePermission,
+              icon: Icon(Icons.settings),
+            )
+          ],
+        ),
         body: Container(
           child: RefreshIndicator(
-            onRefresh: initUsage, // 새로고침 시 사용량 초기화 함수 호출
+            onRefresh: initUsage,
             child: ListView.separated(
               itemBuilder: (context, index) {
-                var event = events[index];
-                var networkInfo = _netInfoMap[event.packageName];
+                var usageInfo = usageInfoList[index];
                 return ListTile(
-                  title: Text(events[index].packageName!), // 앱 패키지 이름 출력
+                  title: Text(usageInfo.packageName!), // 앱 패키지 이름 출력
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                          "Last time used: ${DateTime.fromMillisecondsSinceEpoch(int.parse(events[index].timeStamp!)).toIso8601String()}"), // 마지막 사용 시간 출력
-                      networkInfo == null
-                          ? Text("Unknown network usage") // 네트워크 정보가 없는 경우
-                          : Text("Received bytes: ${networkInfo.rxTotalBytes}\n" +
-                          "Transfered bytes : ${networkInfo.txTotalBytes}"), // 네트워크 정보 출력
+                      Text("Total Usage Time: ${int.parse(usageInfo.totalTimeInForeground!) / 1000 / 60} minutes"), // 총 사용 시간 출력
                     ],
                   ),
-                  trailing: Text(events[index].eventType!), // 이벤트 유형 출력
                 );
               },
               separatorBuilder: (context, index) => Divider(),
-              itemCount: events.length, // 리스트 아이템 개수
+              itemCount: usageInfoList.length, // 리스트 아이템 개수
             ),
           ),
         ),
