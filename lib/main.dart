@@ -1,65 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:huwy/collecting_time.dart';
 import 'dart:async';
 import 'package:usage_stats/usage_stats.dart';
-import 'package:path/path.dart';
-import 'package:sqflite/sqflite.dart';
 
 void main() {
   runApp(MyApp());
 }
 
 class MyApp extends StatefulWidget {
-
   @override
   _MyAppState createState() => _MyAppState();
-  Widget build(BuildContext context) {
-
-    Future<Database> database = initDatabase();
-
-    return MaterialApp(
-      home: DatabaseApp(),
-    );
-  }
-  Future<Database> initDatabase() async{
-    return openDatabase(
-      join(await getDatabasesPath(), 'collectingtime_database.db'),
-      onCreate: (db, version) {
-        return db.execute(
-          "CREATE TABLE (id INTEGER PRIMARY KEY AUTONCREMENT, "
-              "title TEXT, content TEXT, active INTEGER)",
-        );
-      },
-      version: 1,
-    );
-  }
-}
-
-class DatabaseApp extends StatefulWidget {
-
-  final Future<Database> db;
-  DatabaseApp(this.db);
-
-  @override
-  State<StatefulWidget> createState() => _DatabaseApp();
-}
-
-class _DatabaseApp extends State<DatabaseApp> {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold();
-  }
-}
-
-void thistime() {
-
-}
-
-
-void _insertTime(Collectingtime collectingtime) async {
-  final Database database = await widget.db;
-  await database.insert('collectingtimes', collectingtime.toMap(),
-    conflictAlgorithm: ConflictAlgorithm.replace);
 }
 
 class _MyAppState extends State<MyApp> {
@@ -76,7 +25,8 @@ class _MyAppState extends State<MyApp> {
       UsageStats.grantUsagePermission(); // 사용량 퍼미션 획득
 
       DateTime endDate = DateTime.now();
-      DateTime startDate = endDate.subtract(Duration(days: 1));
+      DateTime startDate = DateTime(2021, 3, 12, 18, 49, 55);
+
 
       List<UsageInfo> queryUsageInfoList =
       await UsageStats.queryUsageStats(startDate, endDate); // 사용량 정보 쿼리
@@ -95,7 +45,6 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
@@ -118,7 +67,7 @@ class _MyAppState extends State<MyApp> {
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("Total Usage Time: ${int.parse(usageInfo.totalTimeInForeground!) / 1000 / 60} minutes"), // 총 사용 시간 출력
+                      Text("firstTimeStamp:${DateTime.fromMillisecondsSinceEpoch(int.parse(usageInfo.firstTimeStamp!)).toIso8601String()}lastTimeStamp:${DateTime.fromMillisecondsSinceEpoch(int.parse(usageInfo.lastTimeStamp!)).toIso8601String()} Total Usage Time: ${int.parse(usageInfo.totalTimeInForeground!) / 1000 / 60} minutes"), // 총 사용 시간 출력
                     ],
                   ),
                 );
