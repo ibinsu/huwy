@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:usage_stats/usage_stats.dart';
 
-import 'package:flutter/material.dart';
-
 void main() {
   runApp(MyApp());
 }
@@ -33,7 +31,6 @@ class _HuwyHomePageState extends State<HuwyHomePage> {
   var _combineUsage;
 
 
-
   List<String> displayedSentences = [];
 
   @override
@@ -50,15 +47,15 @@ class _HuwyHomePageState extends State<HuwyHomePage> {
 
     List<String> sentences = [
       '첫 번째 문장 ${_combineUsage}분',
-      '두 번째 문장${_combineUsage}분',
-      '세 번째 문장${_combineUsage}분',
-      '네 번째 문장${_combineUsage}분',
-      '다섯 번째 문장${_combineUsage}분',
-      '여섯 번째 문장${_combineUsage}분',
-      '일곱 번째 문장${_combineUsage}분',
-      '여덟 번째 문장${_combineUsage}분',
-      '아홉 번째 문장${_combineUsage}분',
-      '열 번째 문장${_combineUsage}분',
+      '두 번째 문장 ${_combineUsage}분',
+      '세 번째 문장 ${_combineUsage}분',
+      '네 번째 문장 ${_combineUsage}분',
+      '다섯 번째 문장 ${_combineUsage}분',
+      '여섯 번째 문장 ${_combineUsage}분',
+      '일곱 번째 문장 ${_combineUsage}분',
+      '여덟 번째 문장 ${_combineUsage}분',
+      '아홉 번째 문장 ${_combineUsage}분',
+      '열 번째 문장 ${_combineUsage}분',
     ];
 
     setState(() {
@@ -66,7 +63,7 @@ class _HuwyHomePageState extends State<HuwyHomePage> {
 
       // 문장 목록에서 무작위로 4개 선택
       sentences.shuffle();
-      displayedSentences = sentences.sublist(0, 4);
+      displayedSentences = sentences.sublist(0, 5);
     });
   }
 
@@ -93,7 +90,7 @@ class _HuwyHomePageState extends State<HuwyHomePage> {
 
       setState(() {
         usageInfoList = filteredUsageInfoList.reversed.toList();
-        _combineUsage = totalForegroundTime / 1000 / 60;
+        _combineUsage = (totalForegroundTime / 1000 / 60).round();
       });
     } catch (err) {
       print(err);
@@ -104,22 +101,153 @@ class _HuwyHomePageState extends State<HuwyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Huwy'),
-      ),
-      body: RefreshIndicator(
-        onRefresh: refreshSentences, // 새로고침 시 refreshSentences 함수 호출
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16.0),
-          child: ListView(
-            children: [
-              for (var sentence in displayedSentences)
-                ListTile(
-                  title: Text(sentence),
-                ),
-            ],
-          ),
+      appBar: null,
+      body: Column(
+        children: [
+        Container(
+          height: 35,
         ),
+          ListTile(
+            title: Text("HUWY",
+              style: TextStyle(
+                fontSize: 30.0, // 폰트 크기 조절
+                fontWeight: FontWeight.bold, // 폰트 두껍게 설정 (선택사항)
+              ),
+            ),
+          ),
+          Container(
+            height: 730,
+          margin: EdgeInsets.symmetric(horizontal: 16.0),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20.0),
+            border: Border.all(
+              color: Colors.black,
+              width: 1.0,
+            ),
+          ),
+          child: RefreshIndicator(
+            onRefresh: refreshSentences,
+            child: ListView(
+              padding: EdgeInsets.only(top: 10.0),
+              children: [
+                Container(
+                    margin: EdgeInsets.symmetric(horizontal: 16.0, vertical: 13.0),
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: Color(0xFFF2F2F2),
+                      borderRadius: BorderRadius.circular(20.0),
+                    ),
+                    child: ListTile(
+                      title: Text("지난 1년간 핸드폰으로 유튜브를 본 시간\n ${_combineUsage}분",textAlign: TextAlign.center,),
+                    ),
+                ),
+                for (var sentence in displayedSentences)
+                  Container(
+                    margin: EdgeInsets.symmetric(horizontal: 16.0, vertical: 5.0),
+                    decoration: BoxDecoration(
+                      color: Color(0xFFF2F2F2),
+                      borderRadius: BorderRadius.circular(20.0),
+                    ),
+                    child: ListTile(
+                      title: Text(sentence,textAlign: TextAlign.center,),
+                    ),
+                  ),
+                Container(
+                  margin: EdgeInsets.symmetric(horizontal: 16.0),
+                  child: ListTile(
+                    title: Text("추천영상",
+                      style: TextStyle(
+                        fontSize: 20.0, // 폰트 크기 조절
+                        fontWeight: FontWeight.bold, // 폰트 두껍게 설정 (선택사항)
+                      ),
+                    ),
+                  ),
+                ),
+                Container(
+                  margin: EdgeInsets.symmetric(horizontal: 16.0, vertical: 5.0),
+                  child:SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        Container(
+                          margin: EdgeInsets.symmetric(horizontal: 2.5, vertical: 5.0),
+                          width: 200.0, // 컨테이너 너비 조정
+                          height: 200.0, // 컨테이너 높이 조정
+                          decoration: BoxDecoration(
+                            color: Colors.grey[200],
+                            borderRadius: BorderRadius.circular(20.0),
+                          ),
+                          child: ListTile(
+                            title: Text(
+                              "유튜브 영상 1",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                height: 1.5, // 조정 가능한 줄 간격
+                              ),
+                            ),
+                          ),
+                        ),
+                        Container(
+                          margin: EdgeInsets.symmetric(horizontal: 2.5, vertical: 5.0),
+                          width: 200.0, // 컨테이너 너비 조정
+                          height: 200.0, // 컨테이너 높이 조정
+                          decoration: BoxDecoration(
+                            color: Colors.grey[200],
+                            borderRadius: BorderRadius.circular(20.0),
+                          ),
+                          child: ListTile(
+                            title: Text(
+                              "유튜브 영상 2",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                height: 1.5, // 조정 가능한 줄 간격
+                              ),
+                            ),
+                          ),
+                        ),Container(
+                          margin: EdgeInsets.symmetric(horizontal: 2.5, vertical: 5.0),
+                          width: 200.0, // 컨테이너 너비 조정
+                          height: 200.0, // 컨테이너 높이 조정
+                          decoration: BoxDecoration(
+                            color: Colors.grey[200],
+                            borderRadius: BorderRadius.circular(20.0),
+                          ),
+                          child: ListTile(
+                            title: Text(
+                              "유튜브 영상 3",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                height: 1.5, // 조정 가능한 줄 간격
+                              ),
+                            ),
+                          ),
+                        ),Container(
+                          margin: EdgeInsets.symmetric(horizontal: 2.5, vertical: 5.0),
+                          width: 200.0, // 컨테이너 너비 조정
+                          height: 200.0, // 컨테이너 높이 조정
+                          decoration: BoxDecoration(
+                            color: Colors.grey[200],
+                            borderRadius: BorderRadius.circular(20.0),
+                          ),
+                          child: ListTile(
+                            title: Text(
+                              "유튜브 영상 4",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                height: 1.5, // 조정 가능한 줄 간격
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        )
+        ],
       ),
     );
   }
