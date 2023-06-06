@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:path/path.dart';
 import 'dart:async';
 import 'package:usage_stats/usage_stats.dart';
 
@@ -10,10 +11,6 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Huwy',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
       home: HuwyHomePage(),
     );
   }
@@ -39,6 +36,7 @@ class _HuwyHomePageState extends State<HuwyHomePage> {
 
     refreshSentences();
 
+
   }
 
   Future<void> refreshSentences() async {
@@ -46,16 +44,19 @@ class _HuwyHomePageState extends State<HuwyHomePage> {
     await initUsage();
 
     List<String> sentences = [
-      '첫 번째 문장 ${_combineUsage}분',
-      '두 번째 문장 ${_combineUsage}분',
-      '세 번째 문장 ${_combineUsage}분',
-      '네 번째 문장 ${_combineUsage}분',
-      '다섯 번째 문장 ${_combineUsage}분',
-      '여섯 번째 문장 ${_combineUsage}분',
-      '일곱 번째 문장 ${_combineUsage}분',
-      '여덟 번째 문장 ${_combineUsage}분',
-      '아홉 번째 문장 ${_combineUsage}분',
-      '열 번째 문장 ${_combineUsage}분',
+      '읽을 수 있었던 책${(_combineUsage/300).round()}권',
+      '벌 수 있는 돈 ${(_combineUsage/60 * 9620).round()}원',
+      '런닝을 했다면 ${(_combineUsage/60 * 13).round()}KM',
+      '유튜브 시청중 호흡 수 ${(_combineUsage*12).round()}회',
+      '연애 0회',
+      '축구 연습했을 때 넣을 수 있었을 골 수 ${(_combineUsage/105 *2.53).round()}개',
+      '이동한 회전초밥 거리 ${(_combineUsage/4).round()}바퀴',
+      '청소 횟수 ${(_combineUsage/84).round()}번',
+      '롤을 했다면 ${(_combineUsage/28).round()}판',
+      '휴대폰 풀 충전 횟수 ${(_combineUsage/90).round()}번',
+      '받을 수 있는 택배 수 ${(_combineUsage/2880).round()}번',
+      '끓인 컵라면 수 ${(_combineUsage/3).round()}개',
+      '강아지 산책 횟수 ${(_combineUsage/60).round()}번',
     ];
 
     setState(() {
@@ -104,20 +105,52 @@ class _HuwyHomePageState extends State<HuwyHomePage> {
       appBar: null,
       body: Column(
         children: [
-        Container(
-          height: 35,
-        ),
-          ListTile(
-            title: Text("HUWY",
-              style: TextStyle(
-                fontSize: 30.0, // 폰트 크기 조절
-                fontWeight: FontWeight.bold, // 폰트 두껍게 설정 (선택사항)
+          Container(
+            height: 49,
+          ),
+          Row(
+
+            children:[Container(
+              height: 39,
+              width: 107,
+              margin: EdgeInsets.symmetric(horizontal: 16.0),
+              decoration: BoxDecoration(
+                color: Colors.red, // 배경색 설정
+                borderRadius: BorderRadius.circular(10.0), // 테두리 모서리를 둥글게 설정
+              ),
+              child: Align(
+                alignment: Alignment.center,
+                child: Text(
+                  "HUWY",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 35.0, // 폰트 크기 조절
+                    fontWeight: FontWeight.bold, // 폰트 두껍게 설정 (선택사항)
+                  ),
+                ),
               ),
             ),
+              Expanded(
+                child: Container(
+                  height: 39,
+
+                ),
+              ),
+              Container(
+                height: 39,
+                margin: EdgeInsets.symmetric(horizontal: 16.0),
+                child: IconButton(
+                  onPressed: UsageStats.grantUsagePermission,
+                  icon: Icon(Icons.settings),
+                ),
+              ),
+
+            ]
           ),
           Container(
-            height: 730,
-          margin: EdgeInsets.symmetric(horizontal: 16.0),
+            height: 750,
+          margin: EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20.0),
             border: Border.all(
@@ -128,18 +161,29 @@ class _HuwyHomePageState extends State<HuwyHomePage> {
           child: RefreshIndicator(
             onRefresh: refreshSentences,
             child: ListView(
-              padding: EdgeInsets.only(top: 10.0),
+              padding: EdgeInsets.only(top: 6.0),
               children: [
                 Container(
-                    margin: EdgeInsets.symmetric(horizontal: 16.0, vertical: 13.0),
+                    margin: EdgeInsets.symmetric(horizontal: 16.0, vertical: 3.0),
                     height: 80,
                     decoration: BoxDecoration(
                       color: Color(0xFFF2F2F2),
                       borderRadius: BorderRadius.circular(20.0),
                     ),
                     child: ListTile(
-                      title: Text("지난 1년간 핸드폰으로 유튜브를 본 시간\n ${_combineUsage}분",textAlign: TextAlign.center,),
+                      title: Align(
+                        alignment: Alignment.center,
+                        child: Text("지난 1년간 핸드폰으로 유튜브를 본 시간\n\n ${_combineUsage}분",textAlign: TextAlign.center,)
+                      ),
                     ),
+                ),
+                ListTile(
+                  title: Text("당신이 놓친 것들",
+                    style: TextStyle(
+                      fontSize: 20.0, // 폰트 크기 조절
+                      fontWeight: FontWeight.bold, // 폰트 두껍게 설정 (선택사항)
+                    ),
+                  ),
                 ),
                 for (var sentence in displayedSentences)
                   Container(
@@ -152,19 +196,16 @@ class _HuwyHomePageState extends State<HuwyHomePage> {
                       title: Text(sentence,textAlign: TextAlign.center,),
                     ),
                   ),
-                Container(
-                  margin: EdgeInsets.symmetric(horizontal: 16.0),
-                  child: ListTile(
-                    title: Text("추천영상",
-                      style: TextStyle(
-                        fontSize: 20.0, // 폰트 크기 조절
-                        fontWeight: FontWeight.bold, // 폰트 두껍게 설정 (선택사항)
-                      ),
+                ListTile(
+                  title: Text("추천영상",
+                    style: TextStyle(
+                      fontSize: 20.0, // 폰트 크기 조절
+                      fontWeight: FontWeight.bold, // 폰트 두껍게 설정 (선택사항)
                     ),
                   ),
                 ),
                 Container(
-                  margin: EdgeInsets.symmetric(horizontal: 16.0, vertical: 5.0),
+                  margin: EdgeInsets.symmetric(horizontal: 16.0),
                   child:SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
