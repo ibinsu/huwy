@@ -2,15 +2,130 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:usage_stats/usage_stats.dart';
 
+import 'package:flutter/material.dart';
+
 void main() {
   runApp(MyApp());
 }
 
-class MyApp extends StatefulWidget {
+class MyApp extends StatelessWidget {
   @override
-  _MyAppState createState() => _MyAppState();
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Huwy',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: HuwyHomePage(),
+    );
+  }
 }
 
+class HuwyHomePage extends StatefulWidget {
+  @override
+  _HuwyHomePageState createState() => _HuwyHomePageState();
+}
+
+class _HuwyHomePageState extends State<HuwyHomePage> {
+
+  List<UsageInfo> usageInfoList = []; // 사용량 정보를 저장할 리스트
+
+  var _combineUsage;
+
+
+
+  List<String> displayedSentences = [];
+
+  @override
+  void initState() {
+    super.initState();
+
+    refreshSentences();
+
+  }
+
+  Future<void> refreshSentences() async {
+    await Future.delayed(Duration(seconds: 1)); // 새로고침 지연 시간 설정
+    await initUsage();
+
+    List<String> sentences = [
+      '첫 번째 문장 ${_combineUsage}분',
+      '두 번째 문장${_combineUsage}분',
+      '세 번째 문장${_combineUsage}분',
+      '네 번째 문장${_combineUsage}분',
+      '다섯 번째 문장${_combineUsage}분',
+      '여섯 번째 문장${_combineUsage}분',
+      '일곱 번째 문장${_combineUsage}분',
+      '여덟 번째 문장${_combineUsage}분',
+      '아홉 번째 문장${_combineUsage}분',
+      '열 번째 문장${_combineUsage}분',
+    ];
+
+    setState(() {
+      displayedSentences.clear();
+
+      // 문장 목록에서 무작위로 4개 선택
+      sentences.shuffle();
+      displayedSentences = sentences.sublist(0, 4);
+    });
+  }
+
+  Future<void> initUsage() async {
+    try {
+      UsageStats.grantUsagePermission(); // 사용량 퍼미션 획득
+
+      DateTime endDate = DateTime.now();
+      DateTime startDate = DateTime(endDate.year - 1, endDate.month, endDate.day, 0, 0, 0);
+
+      List<UsageInfo> queryUsageInfoList = await UsageStats.queryUsageStats(startDate, endDate);
+
+      List<UsageInfo> filteredUsageInfoList = queryUsageInfoList
+          .where((info) => info.packageName == "com.google.android.youtube")
+          .toList();
+
+      int totalForegroundTime = 0;
+
+      for (var usageInfo in filteredUsageInfoList) {
+        if (usageInfo.totalTimeInForeground != null) {
+          totalForegroundTime += int.parse(usageInfo.totalTimeInForeground!) ;
+        }
+      }
+
+      setState(() {
+        usageInfoList = filteredUsageInfoList.reversed.toList();
+        _combineUsage = totalForegroundTime / 1000 / 60;
+      });
+    } catch (err) {
+      print(err);
+    }
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Huwy'),
+      ),
+      body: RefreshIndicator(
+        onRefresh: refreshSentences, // 새로고침 시 refreshSentences 함수 호출
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.0),
+          child: ListView(
+            children: [
+              for (var sentence in displayedSentences)
+                ListTile(
+                  title: Text(sentence),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/*
 class _MyAppState extends State<MyApp> {
   List<UsageInfo> usageInfoList = []; // 사용량 정보를 저장할 리스트
 
@@ -25,7 +140,7 @@ class _MyAppState extends State<MyApp> {
       UsageStats.grantUsagePermission(); // 사용량 퍼미션 획득
 
       DateTime endDate = DateTime.now();
-      DateTime startDate = DateTime(2021, 3, 12, 18, 49, 55);
+      DateTime startDate = DateTime(2022, 4, 6, 0, 0, 0);
 
 
       List<UsageInfo> queryUsageInfoList =
@@ -48,7 +163,6 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: const Text("Usage Stats"),
           actions: [
             IconButton(
               onPressed: UsageStats.grantUsagePermission,
@@ -81,7 +195,7 @@ class _MyAppState extends State<MyApp> {
     );
   }
 }
-
+*/
 /*
 final googleSignIn = GoogleSignIn(
   scopes: [
