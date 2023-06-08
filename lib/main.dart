@@ -1,6 +1,8 @@
-import 'package:flutter/material.dart';
-import 'package:path/path.dart';
 import 'dart:async';
+import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 import 'package:usage_stats/usage_stats.dart';
 
 void main() {
@@ -21,6 +23,29 @@ class HuwyHomePage extends StatefulWidget {
   _HuwyHomePageState createState() => _HuwyHomePageState();
 }
 
+
+class YouTubeAPI {
+  static const String apiKey = 'AIzaSyAlghT05EMmyvvr_7rGcN7dRGHKg8fU8lM';
+
+  static Future<List<Map<String, dynamic>>> fetchPlaylistsFromUser() async {
+    var url = 'https://www.googleapis.com/youtube/v3/playlists?' +
+        'part=snippet,id&maxResults=30&' +
+        'key=$apiKey&' +
+        'channelId=UCFfALXX0DOx7zv6VeR5U_Bg';
+
+    var response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      var jsonData = jsonDecode(response.body);
+      var items = jsonData['items'] as List<dynamic>;
+      return items.map<Map<String, dynamic>>((item) => item).toList();
+    } else {
+      throw Exception('Failed to load playlists');
+    }
+  }
+}
+
+
+
 class _HuwyHomePageState extends State<HuwyHomePage> {
 
   List<UsageInfo> usageInfoList = []; // 사용량 정보를 저장할 리스트
@@ -28,15 +53,18 @@ class _HuwyHomePageState extends State<HuwyHomePage> {
   var _combineUsage;
 
 
+  late Future<List<Map<String, dynamic>>> _videoListFuture;
+
   List<String> displayedSentences = [];
 
   @override
   void initState() {
     super.initState();
 
+
     refreshSentences();
 
-
+    _videoListFuture = YouTubeAPI.fetchPlaylistsFromUser();
   }
 
   Future<void> refreshSentences() async {
@@ -103,6 +131,7 @@ class _HuwyHomePageState extends State<HuwyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: null,
+      backgroundColor: Color(0xFF7F7F7F),
       body: Column(
         children: [
           Container(
@@ -152,10 +181,12 @@ class _HuwyHomePageState extends State<HuwyHomePage> {
             height: 750,
           margin: EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
           decoration: BoxDecoration(
+            color: Colors.white,
             borderRadius: BorderRadius.circular(20.0),
             border: Border.all(
               color: Colors.black,
-              width: 1.0,
+              width: 0.1
+              ,
             ),
           ),
           child: RefreshIndicator(
@@ -173,29 +204,59 @@ class _HuwyHomePageState extends State<HuwyHomePage> {
                     child: ListTile(
                       title: Align(
                         alignment: Alignment.center,
-                        child: Text("지난 1년간 핸드폰으로 유튜브를 본 시간\n\n ${_combineUsage}분",textAlign: TextAlign.center,)
+                        child: Text("지난 1년간 핸드폰으로 유튜브를 본 시간\n ${_combineUsage}분",textAlign: TextAlign.center,style: TextStyle(
+                          fontSize: 18.0,
+                          fontWeight: FontWeight.bold,
+                        ),)
                       ),
                     ),
                 ),
+                Container(
+                  height: 2.0,
+                  margin: EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
+                  decoration: BoxDecoration(
+                    color: Color(0xFFF2F2F2),
+                    borderRadius: BorderRadius.circular(20.0),
+                  ), // 회색 선의 색상 설정
+                ),
                 ListTile(
-                  title: Text("당신이 놓친 것들",
-                    style: TextStyle(
-                      fontSize: 20.0, // 폰트 크기 조절
-                      fontWeight: FontWeight.bold, // 폰트 두껍게 설정 (선택사항)
+                  contentPadding: EdgeInsets.symmetric(vertical: 0.0),
+                  title: Container(
+                    margin: EdgeInsets.symmetric(horizontal: 16.0),
+                    padding: EdgeInsets.symmetric(vertical: 0.0), // 상하 여백을 없애기 위한 설정
+                    child: Text(
+                      "당신이 놓친 것들",
+                      style: TextStyle(
+                        fontSize: 20.0,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
                 for (var sentence in displayedSentences)
                   Container(
+                    height: 49,
                     margin: EdgeInsets.symmetric(horizontal: 16.0, vertical: 5.0),
                     decoration: BoxDecoration(
                       color: Color(0xFFF2F2F2),
                       borderRadius: BorderRadius.circular(20.0),
                     ),
                     child: ListTile(
-                      title: Text(sentence,textAlign: TextAlign.center,),
+                      title: Text(sentence,textAlign: TextAlign.center,
+                        style: TextStyle(
+                        fontSize: 18.0,
+                        fontWeight: FontWeight.bold,
+                      ),),
                     ),
                   ),
+                Container(
+                  height: 2.0,
+                  margin: EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
+                  decoration: BoxDecoration(
+                    color: Color(0xFFF2F2F2),
+                    borderRadius: BorderRadius.circular(20.0),
+                  ), // 회색 선의 색상 설정
+                ),
                 ListTile(
                   title: Text("추천영상",
                     style: TextStyle(
@@ -206,81 +267,66 @@ class _HuwyHomePageState extends State<HuwyHomePage> {
                 ),
                 Container(
                   margin: EdgeInsets.symmetric(horizontal: 16.0),
-                  child:SingleChildScrollView(
+                  child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        Container(
-                          margin: EdgeInsets.symmetric(horizontal: 2.5, vertical: 5.0),
-                          width: 200.0, // 컨테이너 너비 조정
-                          height: 200.0, // 컨테이너 높이 조정
-                          decoration: BoxDecoration(
-                            color: Colors.grey[200],
-                            borderRadius: BorderRadius.circular(20.0),
-                          ),
-                          child: ListTile(
-                            title: Text(
-                              "유튜브 영상 1",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                height: 1.5, // 조정 가능한 줄 간격
-                              ),
+                    child: FutureBuilder<List<Map<String, dynamic>>>(
+                      future: _videoListFuture,
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData) {
+                          var videos = snapshot.data!;
+                          return SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: videos.map((video) {
+                                var thumbnailUrl = video['snippet']['thumbnails']['default']['url'];
+                                var title = video['snippet']['title']; // 동영상의 ID를 가져옴
+                                var playlistId = video['id']; // 재생목록 ID를 가져옴
+
+                                return InkWell(
+                                  onTap: () {
+                                    var youtubeUrl = 'https://www.youtube.com/playlist?list=$playlistId';
+                                    launch(youtubeUrl); // YouTube 재생목록 링크 열기
+                                  },
+                                  child: Container(
+                                    margin: EdgeInsets.symmetric(horizontal: 2.5, vertical: 5.0),
+                                    width: 200.0,
+                                    height: 200.0,
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[200],
+                                      borderRadius: BorderRadius.circular(20.0),
+                                    ),
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Image.network(thumbnailUrl),
+                                        SizedBox(height: 8.0),
+                                        Text("\n"),
+                                        Text(
+                                          title,
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            fontSize: 14.0,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        SizedBox(height: 4.0),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
                             ),
-                          ),
-                        ),
-                        Container(
-                          margin: EdgeInsets.symmetric(horizontal: 2.5, vertical: 5.0),
-                          width: 200.0, // 컨테이너 너비 조정
-                          height: 200.0, // 컨테이너 높이 조정
-                          decoration: BoxDecoration(
-                            color: Colors.grey[200],
-                            borderRadius: BorderRadius.circular(20.0),
-                          ),
-                          child: ListTile(
-                            title: Text(
-                              "유튜브 영상 2",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                height: 1.5, // 조정 가능한 줄 간격
-                              ),
-                            ),
-                          ),
-                        ),Container(
-                          margin: EdgeInsets.symmetric(horizontal: 2.5, vertical: 5.0),
-                          width: 200.0, // 컨테이너 너비 조정
-                          height: 200.0, // 컨테이너 높이 조정
-                          decoration: BoxDecoration(
-                            color: Colors.grey[200],
-                            borderRadius: BorderRadius.circular(20.0),
-                          ),
-                          child: ListTile(
-                            title: Text(
-                              "유튜브 영상 3",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                height: 1.5, // 조정 가능한 줄 간격
-                              ),
-                            ),
-                          ),
-                        ),Container(
-                          margin: EdgeInsets.symmetric(horizontal: 2.5, vertical: 5.0),
-                          width: 200.0, // 컨테이너 너비 조정
-                          height: 200.0, // 컨테이너 높이 조정
-                          decoration: BoxDecoration(
-                            color: Colors.grey[200],
-                            borderRadius: BorderRadius.circular(20.0),
-                          ),
-                          child: ListTile(
-                            title: Text(
-                              "유튜브 영상 4",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                height: 1.5, // 조정 가능한 줄 간격
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                          );
+                        } else if (snapshot.hasError) {
+                          return Center(
+                            child: Text('Failed to load videos'),
+                          );
+                        }
+                        return Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      },
                     ),
                   ),
                 ),
@@ -293,344 +339,3 @@ class _HuwyHomePageState extends State<HuwyHomePage> {
     );
   }
 }
-
-/*
-class _MyAppState extends State<MyApp> {
-  List<UsageInfo> usageInfoList = []; // 사용량 정보를 저장할 리스트
-
-  @override
-  void initState() {
-    super.initState();
-    initUsage(); // 앱 실행 시 사용량 초기화 함수 호출
-  }
-
-  Future<void> initUsage() async {
-    try {
-      UsageStats.grantUsagePermission(); // 사용량 퍼미션 획득
-
-      DateTime endDate = DateTime.now();
-      DateTime startDate = DateTime(2022, 4, 6, 0, 0, 0);
-
-
-      List<UsageInfo> queryUsageInfoList =
-      await UsageStats.queryUsageStats(startDate, endDate); // 사용량 정보 쿼리
-
-      List<UsageInfo> filteredUsageInfoList = queryUsageInfoList
-          .where((info) => info.packageName == "com.google.android.youtube")
-          .toList(); // "com.google.android.youtube" 패키지 이름에 해당하는 사용량 정보 필터링
-
-      this.setState(() {
-        usageInfoList = filteredUsageInfoList.reversed.toList(); // 사용량 정보 리스트 업데이트
-      });
-    } catch (err) {
-      print(err);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          actions: [
-            IconButton(
-              onPressed: UsageStats.grantUsagePermission,
-              icon: Icon(Icons.settings),
-            )
-          ],
-        ),
-        body: Container(
-          child: RefreshIndicator(
-            onRefresh: initUsage,
-            child: ListView.separated(
-              itemBuilder: (context, index) {
-                var usageInfo = usageInfoList[index];
-                return ListTile(
-                  title: Text(usageInfo.packageName!), // 앱 패키지 이름 출력
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text("firstTimeStamp:${DateTime.fromMillisecondsSinceEpoch(int.parse(usageInfo.firstTimeStamp!)).toIso8601String()}lastTimeStamp:${DateTime.fromMillisecondsSinceEpoch(int.parse(usageInfo.lastTimeStamp!)).toIso8601String()} Total Usage Time: ${int.parse(usageInfo.totalTimeInForeground!) / 1000 / 60} minutes"), // 총 사용 시간 출력
-                    ],
-                  ),
-                );
-              },
-              separatorBuilder: (context, index) => Divider(),
-              itemCount: usageInfoList.length, // 리스트 아이템 개수
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-*/
-/*
-final googleSignIn = GoogleSignIn(
-  scopes: [
-    'email',
-    'https://www.googleapis.com/auth/youtube.readonly',
-  ],
-);
-
-void main() {
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Google Sign-In Example',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: SignInScreen(),
-    );
-  }
-}
-
-class SignInScreen extends StatefulWidget {
-  @override
-  _SignInScreenState createState() => _SignInScreenState();
-}
-
-class _SignInScreenState extends State<SignInScreen> {
-  youtube.YouTubeApi? _youtubeApi;
-  GoogleSignInAccount? _googleSignInAccount;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Google Sign-In Example'),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ElevatedButton(
-              child: Text('Sign In with Google'),
-              onPressed: () {
-                _handleSignIn(context);
-              },
-            ),
-            SizedBox(height: 10),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _handleSignIn(BuildContext context) async {
-    try {
-      _googleSignInAccount = await googleSignIn.signIn();
-      final GoogleSignInAuthentication googleAuth = await _googleSignInAccount!.authentication;
-      _fetchYoutubeVideos();
-      final googleSignInAccount = googleSignIn.currentUser;
-      if (googleSignInAccount != null) {
-        final googleAuth = await googleSignInAccount.authentication;
-
-      }
-
-      _fetchYoutubePlaylist();
-
-      // Google user information
-      print('api: ${_youtubeApi}');
-      print('Google User ID: ${_googleSignInAccount!.id}');
-      print('Google User Email: ${_googleSignInAccount!.email}');
-
-      // Navigate to the account info page
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => AccountInfoScreen(
-            googleSignInAccount: _googleSignInAccount!,
-          ),
-        ),
-      );
-    } catch (error) {
-      print('Error signing in with Google: $error');
-    }
-  }
-
-
-  void _fetchYoutubePlaylist() async {
-    if (_youtubeApi != null) {
-      try {
-        final response = await _youtubeApi!.playlists.list(
-          ['snippet,contentDetails'],
-          mine: true,
-          maxResults: 10,
-        );
-
-        final playlists = response.items;
-        playlists?.forEach((playlist) {
-          print('Playlist ID: ${playlist.id}');
-          print('Playlist Title: ${playlist.snippet?.title}');
-        });
-      } catch (error) {
-        print('Error fetching YouTube playlists: $error');
-      }
-    }
-  }
-
-  void _fetchYoutubeVideos() async {
-    final googleSignInAccount = googleSignIn.currentUser;
-    if (googleSignInAccount != null) {
-      final googleAuth = await googleSignInAccount.authentication;
-
-      final client = http.Client();
-      final credentialsJson = await rootBundle.loadString('assets/credentials.json');
-      final credentials = auth_io.ServiceAccountCredentials.fromJson(json.decode(credentialsJson));
-      final authClient = await auth_io.clientViaServiceAccount(
-        credentials,
-        ['https://www.googleapis.com/auth/youtube.readonly'],
-        baseClient: client,
-      );
-
-      final youtubeApi = youtube.YouTubeApi(authClient);
-
-      // Set the YouTube API instance to the state
-      setState(() {
-        _youtubeApi = youtubeApi;
-      });
-    }
-  }
-
-
-}
-
-class AccountInfoScreen extends StatelessWidget {
-  final GoogleSignInAccount googleSignInAccount;
-
-  const AccountInfoScreen({required this.googleSignInAccount});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Account Information'),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Google User ID: ${googleSignInAccount.id}',
-              style: TextStyle(fontSize: 16),
-            ),
-            SizedBox(height: 10),
-            Text(
-              'Google User Email: ${googleSignInAccount.email}',
-              style: TextStyle(fontSize: 16),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-*/
-
-
-/*
-
-class CircleData {
-  late double value;
-  late Color color;
-  late String label;
-
-  CircleData(this.value, this.color, this.label);
-}
-
-class PieChart extends StatelessWidget {
-  final List<CircleData> data;
-
-  PieChart(this.data);
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        CustomPaint(
-          size: Size.square(200.0),
-          painter: PieChartPainter(data),
-        ),
-        SizedBox(height: 10),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: data.map((circle) {
-            return Row(
-              children: [
-                Container(
-                  width: 12,
-                  height: 12,
-                  color: circle.color,
-                ),
-                SizedBox(width: 4),
-                Text('${circle.label}: ${circle.value}'),
-              ],
-            );
-          }).toList(),
-        ),
-      ],
-    );
-  }
-}
-
-class PieChartPainter extends CustomPainter {
-  final List<CircleData> data;
-
-  PieChartPainter(this.data);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    double total = 0;
-    data.forEach((circle) => total += circle.value);
-
-    double startRadian = 0;
-    for (var circle in data) {
-      double sweepRadian = (circle.value / total) * 2 * pi;
-
-      final paint = Paint()
-        ..color = circle.color
-        ..style = PaintingStyle.fill;
-
-      canvas.drawArc(
-        Rect.fromLTWH(0, 0, size.width, size.height),
-        startRadian,
-        sweepRadian,
-        true,
-        paint,
-      );
-
-      startRadian += sweepRadian;
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return true;
-  }
-}
-
-
-void main(){
-
-
-  runApp(
-    MaterialApp(
-      home: Scaffold(
-        body: Center(
-          child: PieChart([
-            CircleData(30, Colors.red, 'Red'),
-            CircleData(50, Colors.green, 'Green'),
-            CircleData(20, Colors.blue, 'Blue'),
-          ]),
-        ),
-      ),
-    ),
-  );
-}
-*/
