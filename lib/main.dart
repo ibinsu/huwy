@@ -204,7 +204,7 @@ class _HuwyHomePageState extends State<HuwyHomePage> {
                     child: ListTile(
                       title: Align(
                         alignment: Alignment.center,
-                        child: Text("지난 1년간 핸드폰으로 유튜브를 본 시간\n ${_combineUsage}분",textAlign: TextAlign.center,style: TextStyle(
+                        child: Text("지난 1년간 핸드폰으로 유튜브를 본 시간\n ${_combineUsage/60/24}일 ${_combineUsage/60%24}시간 ${_combineUsage%60}분",textAlign: TextAlign.center,style: TextStyle(
                           fontSize: 18.0,
                           fontWeight: FontWeight.bold,
                         ),)
